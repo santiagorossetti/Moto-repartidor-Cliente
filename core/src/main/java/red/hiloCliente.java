@@ -79,4 +79,8 @@ public class hiloCliente extends Thread {
 
     }
 
+    public void enviarInput (int keycode){
+        enviarMensaje("Input:" + keycode);
+    }
+
 }

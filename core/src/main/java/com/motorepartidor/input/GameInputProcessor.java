@@ -2,9 +2,16 @@ package com.motorepartidor.input;
 
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
+import com.motorepartidor.GameController;
+import com.motorepartidor.screens.GameScreen;
 
 public class GameInputProcessor implements InputProcessor {
 
+    public GameInputProcessor (GameController gameController) {
+        this.gameController = gameController;
+    }
+
+    private GameController gameController;
     private boolean upPressed, downPressed, leftPressed, rightPressed;
     private boolean arrowUpPressed, arrowDownPressed, arrowLeftPressed, arrowRightPressed;
     private boolean ePressed, pPressed;
@@ -46,6 +53,7 @@ public class GameInputProcessor implements InputProcessor {
             case Input.Keys.G: gPressed = true; break;
             case Input.Keys.L: lPressed = true; break;
         }
+        enviarInput(keycode , true);
         return false;
     }
 
@@ -68,7 +76,15 @@ public class GameInputProcessor implements InputProcessor {
             case Input.Keys.G: gPressed = false; break;
             case Input.Keys.L: lPressed = false; break;
         }
+        enviarInput(keycode , false);
         return false;
+    }
+
+    public void enviarInput (int keycode , boolean pressed){
+
+        int codigo = pressed ? keycode : -keycode;
+        gameController.enviarInput(codigo);
+
     }
 
     @Override public boolean keyTyped(char character) { return false; }

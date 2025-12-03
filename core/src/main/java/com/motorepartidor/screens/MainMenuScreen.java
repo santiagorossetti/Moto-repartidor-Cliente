@@ -118,13 +118,13 @@ public class MainMenuScreen implements Screen {
                 try {
                     // Si tu GameScreen requiere otra firma, cámbialo acá:
                     cliente.establecerConexion();
+                    game.setScreen(new GameScreen(game, audio , cliente));
+                   /* if (cliente.comprobarConexion()){
 
-                    if (cliente.comprobarConexion()){
-                        game.setScreen(new GameScreen(game, audio , cliente));
 
                     } else{
                         System.out.println("No se logro conectar");
-                    }
+                    }*/
 
 
                 } catch (Throwable t) {

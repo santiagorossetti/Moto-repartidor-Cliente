@@ -4,6 +4,7 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.motorepartidor.GameController;
 import com.motorepartidor.Main;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -37,7 +38,8 @@ import com.badlogic.gdx.graphics.Color;
 import jdk.internal.org.jline.terminal.TerminalBuilder;
 import red.hiloCliente;
 
-public class GameScreen implements Screen {
+
+public class GameScreen implements Screen , GameController {
 
     private Game game;
     private boolean initialized = false;
@@ -93,6 +95,12 @@ public class GameScreen implements Screen {
     private static final float UNIT_SCALE = 1 / 64f;
     private static final float VIRTUAL_WIDTH = 20f;
     private static final float VIRTUAL_HEIGHT = 15f;
+
+    @Override
+    public void enviarInput(int tecla) {
+        cliente.enviarInput(tecla);
+        System.out.println(tecla);
+    }
 
     // Estado por jugador
     private static class ActiveDelivery {
@@ -164,7 +172,7 @@ public class GameScreen implements Screen {
         camera2 = new OrthographicCamera();
         viewport2 = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera2);
 
-        inputProcessor = new GameInputProcessor();
+        inputProcessor = new GameInputProcessor(this);
         Gdx.input.setInputProcessor(inputProcessor);
 
 
