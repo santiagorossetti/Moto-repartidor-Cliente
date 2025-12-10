@@ -76,8 +76,8 @@ public class Jugador {
         controller.update(this, input, deltaTime);
         renderer.update(deltaTime);
 
-        polygon.setPosition(posicion.x, posicion.y);
-        bounds.setPosition(posicion.x, posicion.y);
+        //polygon.setPosition(posicion.x, posicion.y);
+        //bounds.setPosition(posicion.x, posicion.y);
     }
 
     public void dibujar(Batch batch) {
@@ -118,6 +118,8 @@ public class Jugador {
         this.velocidad = velocidad;
     }
 
+    public void setPosicion (Vector2 posicion) {this.posicion = posicion;}
+
     public Rectangle getBounds() {
         return bounds;
     }
@@ -140,6 +142,10 @@ public class Jugador {
 
     public float getGasolina() {
         return gasolina;
+    }
+
+    public void setGasolina(float gasolina) {
+        this.gasolina = gasolina;
     }
 
     public void gastarGasolina(float cantidad) {

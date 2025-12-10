@@ -46,12 +46,16 @@ public class DeliveryIndicator {
         // Proyección de mundo
         sr.setProjectionMatrix(camera.combined);
 
-        // Flecha (triángulo) con vértice hacia el destino
-        float tipX = playerX + cos * ARROW_LEN;
-        float tipY = playerY + sin * ARROW_LEN;
+        // Distancia desde la moto hasta el INICIO de la flecha
+        final float BASE_OFFSET = 1.0f;
 
-        float baseX = playerX;
-        float baseY = playerY;
+// Punto de inicio de la flecha, algo adelante de la moto
+        float baseX = playerX + cos * BASE_OFFSET;
+        float baseY = playerY + sin * BASE_OFFSET;
+
+// Punta de la flecha, un poco más adelante
+        float tipX = baseX + cos * ARROW_LEN;
+        float tipY = baseY + sin * ARROW_LEN;
 
         float perpX = -sin, perpY = cos;
         float leftX  = baseX + perpX * (ARROW_BASE * 0.5f);

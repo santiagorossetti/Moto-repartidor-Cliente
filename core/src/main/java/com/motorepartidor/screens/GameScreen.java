@@ -122,6 +122,8 @@ public class GameScreen implements Screen , GameController {
         this.chosenSpritePath = DEFAULT_SPRITE_PATH;
         this.chosenSpritePath2 = DEFAULT_SPRITE_PATH2;
         this.cliente = cliente;
+
+        this.cliente.setGameController(this);
     }
 
     @Override
@@ -216,9 +218,12 @@ public class GameScreen implements Screen , GameController {
 
 
         if (playerInGasArea[0] && inputProcessor.isEPressed() && !eKeyHandled) {
-            int restaj1 = 100 - (int)jugadores[0].getGasolina();
+
+
+
+            /*int restaj1 = 100 - (int)jugadores[0].getGasolina();
             jugadores[0].restarDinero(restaj1);
-            jugadores[0].recargarGasolina(100);
+            jugadores[0].recargarGasolina(100);*/
             eKeyHandled = true;
             if (this.audio != null) this.audio.playSound("audio/refuel.wav", 1.0f);
             Gdx.app.log("GameScreen", "¡Jugador 1 recargó gasolina!");
@@ -324,8 +329,8 @@ public class GameScreen implements Screen , GameController {
         for(int i = 0; i < jugadores.length; i++) {
             playerCollidingWithObstacle[i] = checkPolygonCollisions(jugadores[i].getPolygon());
             if(playerCollidingWithObstacle[i] && !playerIsCollidingObstacle[i]) {
-                jugadores[i].restarVida(1);
-                playerIsCollidingObstacle[i] = true;
+             //   jugadores[i].restarVida(1);
+               // playerIsCollidingObstacle[i] = true;
             }
             else if (!playerCollidingWithObstacle[i]) {
                 playerIsCollidingObstacle[i] = false;
@@ -367,14 +372,14 @@ public class GameScreen implements Screen , GameController {
 
         batch.setProjectionMatrix(camera1.combined);
         batch.begin();
-        // si querés solo P1 acá, podés dejar solo jugador1
+
         jugadores[0].dibujar(batch);
         jugadores[1].dibujar(batch);
         batch.end();
 
         // Indicador P1 en su mitad
-        float p1x = (jugadores[0].getBounds().x + jugadores[0].getBounds().width  * 1.5f) * UNIT_SCALE;
-        float p1y = (jugadores[0].getBounds().y + jugadores[0].getBounds().height * 1.5f) * UNIT_SCALE;
+        float p1x = jugadores[0].getPosicion().x * UNIT_SCALE;
+        float p1y = jugadores[0].getPosicion().y * UNIT_SCALE;
         p1Indicator.renderWorld(p1x, p1y, camera1, delta);
 
 
@@ -578,6 +583,65 @@ public class GameScreen implements Screen , GameController {
         Gdx.input.setInputProcessor(null);
         // Opcional: podés parar la música al salir de la pantalla si querés:
         // if (game.getAudio() != null) game.getAudio().stopMusic();
+    }
+
+    @Override
+    public void actualizarPosicion(Vector2 pos1 , Vector2 pos2 , float ang1 , float ang2) {
+
+        if (jugadores[0] != null || jugadores[1] != null) {
+            jugadores[0].setPosicion(pos1);
+            jugadores[1].setPosicion(pos2);
+            jugadores[0].setAngulo(ang1);
+            jugadores[1].setAngulo(ang2);
+        }
+
+    }
+
+    @Override
+    public void actualizarDelivery(Rectangle target, boolean dangerous, int reward, int id) {
+
+        if (target == null) {
+            if (id == 0)      p1Delivery = null;
+            else if (id == 1) p2Delivery = null;
+            return;
+        }
+
+        ActiveDelivery d = new ActiveDelivery();
+        d.target = target;
+        d.dangerous = dangerous;
+        d.reward = reward;
+
+        if (id == 0) {
+            p1Delivery = d;
+        } else if (id == 1) {
+            p2Delivery = d;
+        }
+    }
+
+    @Override
+    public void actualizarGas(float gas , int id){
+        if (jugadores[id] != null) {
+            jugadores[id].setGasolina(gas);
+            //System.out.println(jugadores[id].getGasolina());
+        }
+
+
+    }
+
+    @Override
+    public void actualizarDinero(int dinero, int id) {
+        if (jugadores[id] != null) {
+            jugadores[id].setDinero(dinero);
+            //System.out.println(jugadores[id].getGasolina());
+        }
+    }
+
+    @Override
+    public void actualizarVida(int vida , int id){
+        if (jugadores[id] != null){
+            jugadores[id].setVida(vida);
+           // System.out.println(jugadores[id].getVida());
+        }
     }
 
     @Override

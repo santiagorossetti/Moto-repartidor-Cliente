@@ -108,9 +108,10 @@ public class PlayerController {
         }
 
         // 6. Actualizar las propiedades del jugador
-        jugador.setAngulo(anguloActual);
-        jugador.setVelocidad(velocidadActual);
-        jugador.gastarGasolina(jugador.getGasolina() - gasolinaActual);
+        // jugador.setAngulo(anguloActual);
+         //jugador.setVelocidad(velocidadActual);
+
+        //jugador.gastarGasolina(jugador.getGasolina() - gasolinaActual);
     }
 
     // Método para detectar colisiones con los polígonos del mapa

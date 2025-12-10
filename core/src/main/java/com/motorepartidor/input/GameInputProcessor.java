@@ -36,7 +36,7 @@ public class GameInputProcessor implements InputProcessor {
 
     @Override
     public boolean keyDown(int keycode) {
-        switch(keycode) {
+        /*switch(keycode) {
             case Input.Keys.W: upPressed = true; break;
             case Input.Keys.S: downPressed = true; break;
             case Input.Keys.A: leftPressed = true; break;
@@ -52,14 +52,14 @@ public class GameInputProcessor implements InputProcessor {
 
             case Input.Keys.G: gPressed = true; break;
             case Input.Keys.L: lPressed = true; break;
-        }
+        }*/
         enviarInput(keycode , true);
         return false;
     }
 
     @Override
     public boolean keyUp(int keycode) {
-        switch(keycode) {
+        /*switch(keycode) {
             case Input.Keys.W: upPressed = false; break;
             case Input.Keys.S: downPressed = false; break;
             case Input.Keys.A: leftPressed = false; break;
@@ -75,7 +75,7 @@ public class GameInputProcessor implements InputProcessor {
 
             case Input.Keys.G: gPressed = false; break;
             case Input.Keys.L: lPressed = false; break;
-        }
+        }*/
         enviarInput(keycode , false);
         return false;
     }
