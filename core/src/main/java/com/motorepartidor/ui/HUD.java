@@ -107,6 +107,84 @@ public class HUD {
         hudBatch.end();
     }
 
+    public void renderSingle(Jugador player,
+                             boolean inGas,
+                             boolean nearDealer,
+                             boolean nearDrop,
+                             String deliveryStatus,
+                             int localId) {
+
+        // Actualizar cámara de HUD
+        hudCamera.update();
+
+        // ==== BARRAS (vida / gasolina) ====
+        shapeRenderer.setProjectionMatrix(hudCamera.combined);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+
+        float xBar = 20f;
+        float vidaY = Gdx.graphics.getHeight() - 50;
+        float gasY  = Gdx.graphics.getHeight() - 90;
+
+        // Vida
+        shapeRenderer.setColor(Color.RED);
+        shapeRenderer.rect(xBar, vidaY, 100, 15);
+        shapeRenderer.setColor(Color.GREEN);
+        shapeRenderer.rect(xBar, vidaY,
+            Math.max(0, Math.min(100, player.getVida())),
+            15);
+
+        // Gasolina
+        shapeRenderer.setColor(Color.RED);
+        shapeRenderer.rect(xBar, gasY, 100, 15);
+        shapeRenderer.setColor(Color.ORANGE);
+        shapeRenderer.rect(xBar, gasY,
+            Math.max(0, Math.min(100, player.getGasolina())),
+            15);
+
+        shapeRenderer.end();
+
+        // ==== TEXTO ====
+        hudBatch.setProjectionMatrix(hudCamera.combined);
+        hudBatch.begin();
+
+        float x = 20f;
+        float y = Gdx.graphics.getHeight() - 20f;
+
+        font.setColor(Color.WHITE);
+
+        // Vida / gasolina / dinero
+        font.draw(hudBatch, "Vida:", x, y);
+        y -= 40;
+        font.draw(hudBatch, "Gasolina: " + (int) player.getGasolina(), x, y);
+        y -= 40;
+        font.draw(hudBatch, "Dinero: $" + player.getDinero(), x, y);
+
+        // Estado del pedido
+        y -= 40;
+        font.draw(hudBatch, deliveryStatus, x, y);
+
+        // Mensajes contextuales
+        y -= 20;
+        if (nearDealer && deliveryStatus.toLowerCase().contains("ninguno")) {
+            String key = "[G]" ;
+            font.draw(hudBatch, key + " Aceptar pedido", x, y);
+        } else if (nearDrop && !deliveryStatus.toLowerCase().contains("ninguno")) {
+            String key ="[G]";
+            font.draw(hudBatch, key + " Entregar pedido", x, y);
+        }
+
+        // Mensaje de cargar nafta
+        if (inGas) {
+            y -= 20;
+            int resta = 100 - (int) player.getGasolina();
+            String key =  "[E]" ;
+            font.draw(hudBatch, key + " Cargar nafta " + resta + "$", x, y);
+        }
+
+        hudBatch.end();
+    }
+
+
     public void resize(int width, int height) {
         hudCamera.setToOrtho(false, width, height);
     }

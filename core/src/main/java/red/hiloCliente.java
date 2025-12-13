@@ -16,6 +16,7 @@ public class hiloCliente extends Thread {
     private int port = 6767;
     private boolean fin = false;
     public GameController gameController;
+    private int playerId = -1;
 
     public hiloCliente(){
         try {
@@ -92,7 +93,30 @@ public class hiloCliente extends Thread {
             actualizarDeliveryDesdeMensaje(letras);
         }else if (letras[0].equals("DeliveryFin")){
             terminarDelivery(letras[1]);
+        } else if (letras[0].equals("Hint")) {
+
+            chequearHint (letras[1] , letras[2]);
+
+        } else if (letras[0].equals("ID")){
+
+            playerId = Integer.parseInt(letras[1]);
+
         }
+
+    }
+
+
+
+    private void chequearHint (String id , String tipo) {
+
+        int idPlayer = Integer.parseInt(id);
+        int tipoHint = Integer.parseInt(tipo);
+
+        Gdx.app.postRunnable(() -> {
+            if (gameController != null) {
+                gameController.actualizarHint(idPlayer, tipoHint);
+            }
+        });
 
     }
 
@@ -195,7 +219,11 @@ public class hiloCliente extends Thread {
     }
 
     public void enviarInput (int keycode){
-        enviarMensaje("Input:" + keycode);
+
+            if (playerId == -1) return; // todavía no tengo ID
+            enviarMensaje("Input:" + playerId + ":" + keycode);
+
+
     }
 
 
@@ -220,4 +248,9 @@ public class hiloCliente extends Thread {
         this.gameController = gameController;
     }
 
+    public int getPlayerId() {
+        return playerId;
+    }
+
 }
+

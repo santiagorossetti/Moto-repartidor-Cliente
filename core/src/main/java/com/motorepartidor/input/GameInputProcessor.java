@@ -7,84 +7,37 @@ import com.motorepartidor.screens.GameScreen;
 
 public class GameInputProcessor implements InputProcessor {
 
-    public GameInputProcessor (GameController gameController) {
+    private final GameController gameController;
+
+    public GameInputProcessor(GameController gameController) {
         this.gameController = gameController;
     }
 
-    private GameController gameController;
-    private boolean upPressed, downPressed, leftPressed, rightPressed;
-    private boolean arrowUpPressed, arrowDownPressed, arrowLeftPressed, arrowRightPressed;
-    private boolean ePressed, pPressed;
-    private boolean gPressed, lPressed;
-
-    public boolean isUpPressed() { return upPressed; }
-    public boolean isDownPressed() { return downPressed; }
-    public boolean isLeftPressed() { return leftPressed; }
-    public boolean isRightPressed() { return rightPressed; }
-
-    public boolean isArrowUpPressed() { return arrowUpPressed; }
-    public boolean isArrowDownPressed() { return arrowDownPressed; }
-    public boolean isArrowLeftPressed() { return arrowLeftPressed; }
-    public boolean isArrowRightPressed() { return arrowRightPressed; }
-
-    public boolean isEPressed() { return ePressed; }
-    public boolean isPPressed() { return pPressed; }
-
-    // Nuevas teclas para pedidos
-    public boolean isGPressed() { return gPressed; } // Jugador 1 aceptar/entregar
-    public boolean isLPressed() { return lPressed; } // Jugador 2 aceptar/entregar
+    private boolean isAllowed(int keycode) {
+        return keycode == Input.Keys.W ||
+            keycode == Input.Keys.A ||
+            keycode == Input.Keys.S ||
+            keycode == Input.Keys.D ||
+            keycode == Input.Keys.G ||
+            keycode == Input.Keys.E;
+    }
 
     @Override
     public boolean keyDown(int keycode) {
-        /*switch(keycode) {
-            case Input.Keys.W: upPressed = true; break;
-            case Input.Keys.S: downPressed = true; break;
-            case Input.Keys.A: leftPressed = true; break;
-            case Input.Keys.D: rightPressed = true; break;
-
-            case Input.Keys.UP: arrowUpPressed = true; break;
-            case Input.Keys.DOWN: arrowDownPressed = true; break;
-            case Input.Keys.LEFT: arrowLeftPressed = true; break;
-            case Input.Keys.RIGHT: arrowRightPressed = true; break;
-
-            case Input.Keys.E: ePressed = true; break;
-            case Input.Keys.P: pPressed = true; break;
-
-            case Input.Keys.G: gPressed = true; break;
-            case Input.Keys.L: lPressed = true; break;
-        }*/
-        enviarInput(keycode , true);
+        if (isAllowed(keycode)) {
+            gameController.enviarInput(keycode);      // pressed
+            return true;
+        }
         return false;
     }
 
     @Override
     public boolean keyUp(int keycode) {
-        /*switch(keycode) {
-            case Input.Keys.W: upPressed = false; break;
-            case Input.Keys.S: downPressed = false; break;
-            case Input.Keys.A: leftPressed = false; break;
-            case Input.Keys.D: rightPressed = false; break;
-
-            case Input.Keys.UP: arrowUpPressed = false; break;
-            case Input.Keys.DOWN: arrowDownPressed = false; break;
-            case Input.Keys.LEFT: arrowLeftPressed = false; break;
-            case Input.Keys.RIGHT: arrowRightPressed = false; break;
-
-            case Input.Keys.E: ePressed = false; break;
-            case Input.Keys.P: pPressed = false; break;
-
-            case Input.Keys.G: gPressed = false; break;
-            case Input.Keys.L: lPressed = false; break;
-        }*/
-        enviarInput(keycode , false);
+        if (isAllowed(keycode)) {
+            gameController.enviarInput(-keycode);     // released
+            return true;
+        }
         return false;
-    }
-
-    public void enviarInput (int keycode , boolean pressed){
-
-        int codigo = pressed ? keycode : -keycode;
-        gameController.enviarInput(codigo);
-
     }
 
     @Override public boolean keyTyped(char character) { return false; }

@@ -14,4 +14,6 @@ public interface GameController {
     void actualizarVida(int vida , int id);
     void actualizarDelivery(Rectangle target, boolean dangerous, int reward, int id);
 
+    void actualizarHint(int id, int tipo);
+
 }

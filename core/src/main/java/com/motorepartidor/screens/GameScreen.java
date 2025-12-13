@@ -49,10 +49,12 @@ public class GameScreen implements Screen , GameController {
     private SpriteBatch batch;
     private ShapeRenderer shapeRenderer;
 
-    private OrthographicCamera camera1;
-    private Viewport viewport1;
-    private OrthographicCamera camera2;
-    private Viewport viewport2;
+    private OrthographicCamera camera;
+    private Viewport viewport;
+    private int localId = 0;
+
+    //private OrthographicCamera camera2;
+    //private Viewport viewport2;
 
     private HUD hud;
 
@@ -168,11 +170,11 @@ public class GameScreen implements Screen , GameController {
         jugadores[0] = new Jugador(chosenSpritePath, 18, 36, new Vector2(1700, 500), collisionLayer);
         jugadores[1] = new Jugador(chosenSpritePath2, 18, 36, new Vector2(1700, 450), collisionLayer);
 
-        camera1 = new OrthographicCamera();
-        viewport1 = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera1);
+        camera = new OrthographicCamera();
+        viewport = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
 
-        camera2 = new OrthographicCamera();
-        viewport2 = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera2);
+        //camera2 = new OrthographicCamera();
+        //viewport2 = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera2);
 
         inputProcessor = new GameInputProcessor(this);
         Gdx.input.setInputProcessor(inputProcessor);
@@ -212,18 +214,20 @@ public class GameScreen implements Screen , GameController {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        localId = cliente.getPlayerId();
+
         // --- GASOLINA / INPUT ---
             playerInGasArea[0] = checkPlayerInGasArea(jugadores[0]);
             playerInGasArea[1] = checkPlayerInGasArea(jugadores[1]);
 
 
-        if (playerInGasArea[0] && inputProcessor.isEPressed() && !eKeyHandled) {
+         /*if (playerInGasArea[0] && inputProcessor.isEPressed() && !eKeyHandled) {
 
 
 
             /*int restaj1 = 100 - (int)jugadores[0].getGasolina();
             jugadores[0].restarDinero(restaj1);
-            jugadores[0].recargarGasolina(100);*/
+            jugadores[0].recargarGasolina(100);
             eKeyHandled = true;
             if (this.audio != null) this.audio.playSound("audio/refuel.wav", 1.0f);
             Gdx.app.log("GameScreen", "¡Jugador 1 recargó gasolina!");
@@ -240,18 +244,18 @@ public class GameScreen implements Screen , GameController {
             Gdx.app.log("GameScreen", "¡Jugador 2 recargó gasolina!");
         } else if (!inputProcessor.isPPressed()) {
             pKeyHandled = false;
-        }
+        }*/
 
         // --- PROXIMIDAD A ZONAS ---
-        nearDealer[0] = isInAny(jugadores[0],dealerAreas);
+       /* nearDealer[0] = isInAny(jugadores[0],dealerAreas);
         nearDealer[1] = isInAny(jugadores[1],dealerAreas);
 
 
         nearDrop[0]   = (p1Delivery != null) && jugadores[0].getBounds().overlaps(p1Delivery.target);
         nearDrop[1]   = (p2Delivery != null) && jugadores[1].getBounds().overlaps(p2Delivery.target);
-
+        */
         // --- ACEPTAR / ENTREGAR: JUGADOR 1 (G) ---
-        if (inputProcessor.isGPressed()) {
+        /*if (inputProcessor.isGPressed()) {
             if (!gKeyHandled) {
                 if (p1Delivery == null && nearDealer[0]) {
                     p1Delivery = createDelivery();
@@ -269,10 +273,10 @@ public class GameScreen implements Screen , GameController {
             }
         } else {
             gKeyHandled = false;
-        }
+        }*/
 
         // --- ACEPTAR / ENTREGAR: JUGADOR 2 (L) ---
-        if (inputProcessor.isLPressed()) {
+        /*if (inputProcessor.isLPressed()) {
             if (!lKeyHandled) {
                 if (p2Delivery == null && nearDealer[1]) {
                     p2Delivery = createDelivery();
@@ -290,7 +294,7 @@ public class GameScreen implements Screen , GameController {
             }
         } else {
             lKeyHandled = false;
-        }
+        }*/
 
         // Centro del destino -> ESCALADO a mundo
         if (p1Delivery != null && p1Delivery.target != null) {
@@ -310,7 +314,7 @@ public class GameScreen implements Screen , GameController {
         }
 
         // --- UPDATE JUGADORES ---
-        jugadores[0].update(new PlayerController.PlayerInput() {
+        /*jugadores[0].update(new PlayerController.PlayerInput() {
             @Override public boolean accelerate() { return inputProcessor.isUpPressed(); }
             @Override public boolean brake() { return inputProcessor.isDownPressed(); }
             @Override public boolean turnLeft() { return inputProcessor.isLeftPressed(); }
@@ -321,11 +325,11 @@ public class GameScreen implements Screen , GameController {
             @Override public boolean brake() { return inputProcessor.isArrowDownPressed(); }
             @Override public boolean turnLeft() { return inputProcessor.isArrowLeftPressed(); }
             @Override public boolean turnRight() { return inputProcessor.isArrowRightPressed(); }
-        }, delta);
+        }, delta);*/
 
 
         // --- COLISIONES / DAÑO ---
-        boolean[] playerCollidingWithObstacle = new boolean[2];
+    /*    boolean[] playerCollidingWithObstacle = new boolean[2];
         for(int i = 0; i < jugadores.length; i++) {
             playerCollidingWithObstacle[i] = checkPolygonCollisions(jugadores[i].getPolygon());
             if(playerCollidingWithObstacle[i] && !playerIsCollidingObstacle[i]) {
@@ -335,9 +339,9 @@ public class GameScreen implements Screen , GameController {
             else if (!playerCollidingWithObstacle[i]) {
                 playerIsCollidingObstacle[i] = false;
             }
-        }
+        }*/
 
-        if (Intersector.overlapConvexPolygons(jugadores[0].getPolygon(), jugadores[1].getPolygon())) {
+       /* if (Intersector.overlapConvexPolygons(jugadores[0].getPolygon(), jugadores[1].getPolygon())) {
             if (!playersAreColliding) {
                 Gdx.app.log("GameScreen", "¡Colisión entre jugadores detectada!");
                 jugadores[0].restarVida(10);
@@ -346,7 +350,7 @@ public class GameScreen implements Screen , GameController {
             }
         } else {
             playersAreColliding = false;
-        }
+        }*/
 
         checkEndMatch();
 
@@ -357,10 +361,10 @@ public class GameScreen implements Screen , GameController {
         int h = Gdx.graphics.getHeight();
 
         // ===== VIEWPORT IZQUIERDO (P1) =====
-        Gdx.gl.glViewport(0, 0, halfW, h);
+        //Gdx.gl.glViewport(0, 0, halfW, h);
 
         // cámara 1 sigue a P1
-        camera1.position.set(
+        /* camera1.position.set(
             jugadores[0].getPosicion().x * UNIT_SCALE,
             jugadores[0].getPosicion().y * UNIT_SCALE,
             0f
@@ -376,20 +380,20 @@ public class GameScreen implements Screen , GameController {
         jugadores[0].dibujar(batch);
         jugadores[1].dibujar(batch);
         batch.end();
-
+        */
         // Indicador P1 en su mitad
-        float p1x = jugadores[0].getPosicion().x * UNIT_SCALE;
+       /* float p1x = jugadores[0].getPosicion().x * UNIT_SCALE;
         float p1y = jugadores[0].getPosicion().y * UNIT_SCALE;
         p1Indicator.renderWorld(p1x, p1y, camera1, delta);
-
+    */
 
 
 
         // ===== VIEWPORT DERECHO (P2) =====
-        Gdx.gl.glViewport(halfW, 0, halfW, h);
+        //Gdx.gl.glViewport(halfW, 0, halfW, h);
 
         // cámara 2 sigue a P2
-        camera2.position.set(
+        /*camera2.position.set(
             jugadores[1].getPosicion().x * UNIT_SCALE,
             jugadores[1].getPosicion().y * UNIT_SCALE,
             0f
@@ -405,24 +409,83 @@ public class GameScreen implements Screen , GameController {
         jugadores[0].dibujar(batch);
         jugadores[1].dibujar(batch);
         batch.end();
-
+        */
         // Indicador P2 en su mitad
-        float p2x = (jugadores[1].getBounds().x + jugadores[1].getBounds().width  * 1.5f) * UNIT_SCALE;
+        /*float p2x = (jugadores[1].getBounds().x + jugadores[1].getBounds().width  * 1.5f) * UNIT_SCALE;
         float p2y = (jugadores[1].getBounds().y + jugadores[1].getBounds().height * 1.5f) * UNIT_SCALE;
         p2Indicator.renderWorld(p2x, p2y, camera2, delta);
-
+        */
         // ===== VOLVER A PANTALLA COMPLETA (UI / DIVISOR) =====
+        // ===== VOLVER A PANTALLA COMPLETA =====
         Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
+// La cámara sigue al jugador local (localId)
+        Jugador localPlayer = jugadores[localId];
+        camera.position.set(localPlayer.getPosicion().x * UNIT_SCALE,
+            localPlayer.getPosicion().y * UNIT_SCALE,
+            0f);
+        camera.update();
+
+// --- RENDER MUNDO ---
+
+// Mapa
+        tiledMapRenderer.setView(camera);
+        tiledMapRenderer.render();
+
+// Jugadores
+        batch.setProjectionMatrix(camera.combined);
+        batch.begin();
+        jugadores[0].dibujar(batch);
+        jugadores[1].dibujar(batch);
+        batch.end();
+
+// Indicador solo para el jugador local
+        if (localId == 0) {
+            float p1x = jugadores[0].getPosicion().x * UNIT_SCALE;
+            float p1y = jugadores[0].getPosicion().y * UNIT_SCALE;
+            p1Indicator.renderWorld(p1x, p1y, camera, delta);
+        } else {
+            float p2x = jugadores[1].getPosicion().x * UNIT_SCALE;
+            float p2y = jugadores[1].getPosicion().y * UNIT_SCALE;
+            p2Indicator.renderWorld(p2x, p2y, camera, delta);
+        }
+
+// --- AHORA SÍ: HUD, AL FINAL ---
+
+        boolean localInGas       = playerInGasArea[localId];
+        boolean localNearDealer  = nearDealer[localId];
+        boolean localNearDrop    = nearDrop[localId];
+
+        String localDeliveryStatus =
+            (localId == 0) ?
+                ((p1Delivery == null) ? "Pedido: ninguno"
+                    : (p1Delivery.dangerous ? "Pedido: PELIGROSO $" + p1Delivery.reward
+                    : "Pedido: Normal $" + p1Delivery.reward))
+                :
+                ((p2Delivery == null) ? "Pedido: ninguno"
+                    : (p2Delivery.dangerous ? "Pedido: PELIGROSO $" + p2Delivery.reward
+                    : "Pedido: Normal $" + p2Delivery.reward));
+
+        hud.renderSingle(localPlayer,
+            localInGas,
+            localNearDealer,
+            localNearDrop,
+            localDeliveryStatus,
+            localId);
+
+
+
+
+
         // Línea roja central
-        shapeRenderer.setProjectionMatrix(new Matrix4().setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
+        /*shapeRenderer.setProjectionMatrix(new Matrix4().setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setColor(1, 0, 0, 1);
         shapeRenderer.rect(Gdx.graphics.getWidth() / 2f - 2, 0, 4, Gdx.graphics.getHeight());
-        shapeRenderer.end();
+        shapeRenderer.end();*/
 
         // --- HUD ---
-        hud.setP1NearDealer(nearDealer[0]);
+       /* hud.setP1NearDealer(nearDealer[0]);
         hud.setP2NearDealer(nearDealer[1]);
         hud.setP1NearDrop(nearDrop[0]);
         hud.setP2NearDrop(nearDrop[1]);
@@ -436,7 +499,7 @@ public class GameScreen implements Screen , GameController {
                 : (p2Delivery.dangerous ? "Pedido: PELIGROSO $" + p2Delivery.reward
                 : "Pedido: Normal $" + p2Delivery.reward)
         );
-        hud.render(jugadores[0], jugadores[1], playerInGasArea[0], playerInGasArea[1]);
+        hud.render(jugadores[0], jugadores[1], playerInGasArea[0], playerInGasArea[1]);*/
 
         // --- ESC → Options ---
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
@@ -459,7 +522,7 @@ public class GameScreen implements Screen , GameController {
         return false;
     }
 
-    private boolean checkPolygonCollisions(Polygon polygon) {
+   /* private boolean checkPolygonCollisions(Polygon polygon) {
         if (collisionLayer == null) return false;
 
         float[] playerVertices = polygon.getTransformedVertices();
@@ -485,7 +548,7 @@ public class GameScreen implements Screen , GameController {
             }
         }
         return false;
-    }
+    }*/
 
     private boolean isInAny(Jugador jugador, List<Rectangle> zonas) {
         Rectangle b = jugador.getBounds();
@@ -495,19 +558,19 @@ public class GameScreen implements Screen , GameController {
         return false;
     }
 
-    private Rectangle randomEntrega() {
+    /*private Rectangle randomEntrega() {
         if (entregaAreas.isEmpty()) return null;
         return entregaAreas.get(rng.nextInt(entregaAreas.size()));
     }
 
-    private ActiveDelivery createDelivery() {
+   /* private ActiveDelivery createDelivery() {
         ActiveDelivery d = new ActiveDelivery();
         d.target = randomEntrega();
         if (d.target == null) return null;
         d.dangerous = rng.nextFloat() < 0.25f; // 25% peligroso
         d.reward = d.dangerous ? 130 : 65;
         return d;
-    }
+    }*/
 
     private void checkEndMatch() {
         if (jugadores == null || jugadores.length < 2) return;
@@ -570,8 +633,8 @@ public class GameScreen implements Screen , GameController {
 
     @Override
     public void resize(int width, int height) {
-        viewport1.update(width / 2, height, false);
-        viewport2.update(width / 2, height, false);
+        viewport.update(width / 2, height, false);
+       // viewport2.update(width / 2, height, false);
         hud.resize(width, height);
     }
 
@@ -626,6 +689,19 @@ public class GameScreen implements Screen , GameController {
         }
 
 
+    }
+
+    public void actualizarHint(int id, int tipo) {
+        boolean dealer = (tipo == 1);
+        boolean drop   = (tipo == 2);
+
+        if (id == 0) {
+            nearDealer[0] = dealer;
+            nearDrop[0]   = drop;
+        } else if (id == 1) {
+            nearDealer[1] = dealer;
+            nearDrop[1]   = drop;
+        }
     }
 
     @Override
