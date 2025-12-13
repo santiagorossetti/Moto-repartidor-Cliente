@@ -98,8 +98,9 @@ public class Jugador {
         return frames;
     }
 
-    public void setAngulo(float angulo) {
-        this.angulo = angulo;
+    public void setAngulo(float ang) {
+        this.angulo = ang;
+        polygon.setRotation(ang);
     }
 
     public float getAngulo() {
@@ -118,7 +119,15 @@ public class Jugador {
         this.velocidad = velocidad;
     }
 
-    public void setPosicion (Vector2 posicion) {this.posicion = posicion;}
+    public void setPosicion(Vector2 nuevaPos) {
+        this.posicion.set(nuevaPos);
+
+        // 🔴 CLAVE: mantener hitbox sincronizado
+        bounds.setPosition(posicion.x, posicion.y);
+
+        // Si usás polygon
+        polygon.setPosition(posicion.x, posicion.y);
+    }
 
     public Rectangle getBounds() {
         return bounds;

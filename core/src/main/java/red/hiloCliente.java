@@ -27,6 +27,7 @@ public class hiloCliente extends Thread {
         }
     }
 
+
     public void enviarMensaje(String msg) {
         byte[] data = msg.getBytes();
         DatagramPacket dp = new DatagramPacket(data , data.length, ipServer , port);
@@ -74,6 +75,13 @@ public class hiloCliente extends Thread {
             comprobarConexion();
         } else if (msg.equals("Comienza")) {
 
+            Gdx.app.postRunnable(() -> {
+                if (gameController != null) {
+                    gameController.onStartMatch();
+                }
+            });
+
+
         }else if (letras[0].equals("Movimiento")){
             moverPersonaje(letras[1] , letras[2] , letras[3] ,  letras[4]);
         }else if (letras[0].equals("Gas")){
@@ -100,12 +108,22 @@ public class hiloCliente extends Thread {
         } else if (letras[0].equals("ID")){
 
             playerId = Integer.parseInt(letras[1]);
+            Gdx.app.postRunnable(() -> {
+                if (gameController != null) gameController.onConnected(playerId);
+            });
 
+        }else if (letras[0].equals("GameOver")) {
+
+            onGameover(letras[1]);
+
+        } else if (msg.equals("Reset")) {
+            resetear();
         }
 
     }
 
 
+    // Recive el hint del viewport
 
     private void chequearHint (String id , String tipo) {
 
@@ -119,6 +137,49 @@ public class hiloCliente extends Thread {
         });
 
     }
+
+    //resetea el juego
+
+    public void resetear (){
+        Gdx.app.postRunnable(() -> {
+            if (gameController != null) {
+                gameController.onReset();
+            }
+        });
+    }
+
+    public boolean isConnected() {
+        return playerId != -1;
+    }
+
+    private void onGameover(String winnerIndex){
+
+        int winner = Integer.parseInt(winnerIndex);
+
+        Gdx.app.postRunnable(() -> {
+            if (gameController != null) {
+                gameController.onGameOver(winner);
+            }
+        });
+
+    }
+
+    public void desconectar() {
+        try {
+            // mandalo 2-3 veces por UDP (por si se pierde)
+            for (int i = 0; i < 3; i++) {
+                enviarMensaje("Disconnect:" + playerId);
+            }
+        } catch (Exception ignored) {}
+
+        terminarCliente();       // cierra socket y thread
+        playerId = -1;           // marcado como no conectado
+    }
+
+    public void intentarConexion() {
+        enviarMensaje("Conexion");
+    }
+
 
     private void terminarDelivery(String id) {
 

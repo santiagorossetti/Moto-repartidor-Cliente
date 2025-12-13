@@ -116,19 +116,14 @@ public class MainMenuScreen implements Screen {
         playBtn.addListener(new ClickListener() {
             @Override public void clicked(InputEvent event, float x, float y) {
                 try {
-                    // Si tu GameScreen requiere otra firma, cámbialo acá:
-                    cliente.establecerConexion();
-                    game.setScreen(new GameScreen(game, audio , cliente));
-                   /* if (cliente.comprobarConexion()){
 
-
-                    } else{
-                        System.out.println("No se logro conectar");
-                    }*/
+                    hiloCliente nuevo = new hiloCliente();
+                    nuevo.start();
+                    game.setScreen(new BuscarServidorScreen(game, audio, nuevo));
 
 
                 } catch (Throwable t) {
-                    Gdx.app.error("MainMenu", "Error al abrir GameScreen", t);
+                    Gdx.app.error("MainMenu", "Error al iniciar búsqueda", t);
                 }
             }
         });

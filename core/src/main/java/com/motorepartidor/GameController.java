@@ -15,5 +15,11 @@ public interface GameController {
     void actualizarDelivery(Rectangle target, boolean dangerous, int reward, int id);
 
     void actualizarHint(int id, int tipo);
+    void onGameOver(int winnerIndex);
+    void onReset();
+
+    void onConnected(int playerId);
+    void onStartMatch();
+
 
 }

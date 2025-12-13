@@ -352,7 +352,7 @@ public class GameScreen implements Screen , GameController {
             playersAreColliding = false;
         }*/
 
-        checkEndMatch();
+        //checkEndMatch();
 
 
 
@@ -572,7 +572,7 @@ public class GameScreen implements Screen , GameController {
         return d;
     }*/
 
-    private void checkEndMatch() {
+    /*private void checkEndMatch() {
         if (jugadores == null || jugadores.length < 2) return;
 
         int vida1 = jugadores[0].getVida();
@@ -629,7 +629,48 @@ public class GameScreen implements Screen , GameController {
         } else {
             game.setScreen(new MainMenuScreen(game, audio , cliente));
         }
+    }*/
+
+    @Override
+    public void onReset() {
+        // limpiar deliveries y hints locales (lo visual)
+        p1Delivery = null;
+        p2Delivery = null;
+
+        nearDealer[0] = nearDealer[1] = false;
+        nearDrop[0]   = nearDrop[1]   = false;
+
+        // opcional: resetear stats local (igual el server te lo vuelve a mandar)
+        jugadores[0].setVida(100);
+        jugadores[1].setVida(100);
+        jugadores[0].setDinero(0);
+        jugadores[1].setDinero(0);
+        jugadores[0].setGasolina(100);
+        jugadores[1].setGasolina(100);
+
+        // posiciones: podés setear defaults para que “salte” rápido,
+        // pero en 1-2 frames te llega Movimiento del server igual
+        jugadores[0].setPosicion(new Vector2(1700, 500));
+        jugadores[1].setPosicion(new Vector2(1700, 450));
+        jugadores[0].setAngulo(0);
+        jugadores[1].setAngulo(0);
     }
+
+
+    @Override
+    public void onGameOver(int winnerIndex) {
+        if (audio != null) {
+            try { audio.stopMusic(); } catch (Exception ignored) {}
+        }
+        if (cliente != null) cliente.desconectar();
+        // Mostrá la misma pantalla de resultado que el server (si ya la tenés)
+        if (game instanceof Main) {
+            ((Main) game).onMatchFinished(winnerIndex);
+        } else {
+            game.setScreen(new MainMenuScreen(game, audio, cliente));
+        }
+    }
+
 
     @Override
     public void resize(int width, int height) {
@@ -710,6 +751,16 @@ public class GameScreen implements Screen , GameController {
             jugadores[id].setDinero(dinero);
             //System.out.println(jugadores[id].getGasolina());
         }
+    }
+
+    @Override
+    public void onConnected(int playerId) {
+
+    }
+
+    @Override
+    public void onStartMatch() {
+
     }
 
     @Override
