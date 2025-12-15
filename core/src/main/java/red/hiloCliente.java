@@ -14,7 +14,7 @@ public class hiloCliente extends Thread {
     private DatagramSocket conexion;
     private InetAddress ipServer;
     private int port = 6767;
-    private boolean fin = false;
+    private volatile boolean fin = false;
     public GameController gameController;
     private int playerId = -1;
     private volatile long lastPongMs = System.currentTimeMillis();
@@ -30,6 +30,12 @@ public class hiloCliente extends Thread {
         } catch (SocketException | UnknownHostException e){
             e.printStackTrace();
         }
+
+        this.setDaemon(true);
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("Cierre detectado por la JVM, intentando desconectar...");
+            desconectar();
+        }));
     }
 
 
@@ -61,9 +67,10 @@ public class hiloCliente extends Thread {
         }
     }
 
-    public void terminarCliente(){
+    public void terminarCliente() {
         fin = true;
-        if (conexion != null && !conexion.isClosed()) conexion.close();
+        gameController = null;
+        try { if (conexion != null) conexion.close(); } catch (Exception ignored) {}
         interrupt();
     }
 
@@ -161,8 +168,7 @@ public class hiloCliente extends Thread {
                 break;
 
             default:
-                // Mensaje desconocido (opcional para debug)
-                // System.out.println("Mensaje desconocido: " + msg);
+
                 break;
         }
     }
@@ -212,16 +218,12 @@ public class hiloCliente extends Thread {
 
     public void desconectar() {
         try {
-            // mandalo 2-3 veces por UDP (por si se pierde)
             if (playerId >= 0) {
-                for (int i = 0; i < 3; i++) {
-                    enviarMensaje("Disconnect:" + playerId);
-                }
+                for (int i = 0; i < 3; i++) enviarMensaje("Disconnect:" + playerId);
             }
         } catch (Exception ignored) {}
-
-        terminarCliente();       // cierra socket y thread
-        playerId = -1;           // marcado como no conectado
+        playerId = -1;
+        terminarCliente();
     }
 
     public void intentarConexion() {

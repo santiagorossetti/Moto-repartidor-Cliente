@@ -27,9 +27,9 @@ import red.hiloCliente;
 
 public class GameScreen implements Screen, GameController {
 
-    // =========================
+
     // Constantes / config
-    // =========================
+
     private static final float UNIT_SCALE = 1f / 64f;
     private static final float VIRTUAL_WIDTH = 20f;
     private static final float VIRTUAL_HEIGHT = 15f;
@@ -40,16 +40,16 @@ public class GameScreen implements Screen, GameController {
 
     public static final long SERVER_TIMEOUT_MS = 3500; // 3.5s sin Pong => caído
 
-    // =========================
+
     // Dependencias
-    // =========================
+
     private final Game game;
     private final AudioManager audio;
     private final hiloCliente cliente;
 
-    // =========================
+
     // Render
-    // =========================
+
     private SpriteBatch batch;
     private OrthographicCamera camera;
     private Viewport viewport;
@@ -57,21 +57,21 @@ public class GameScreen implements Screen, GameController {
     private TiledMap tiledMap;
     private OrthogonalTiledMapRenderer tiledMapRenderer;
 
-    // Solo para que Jugador no explote si lo usa internamente (si tu Jugador lo requiere)
+    // Solo para que Jugador no explote si lo usa internamente
     private MapLayer collisionLayer;
 
-    // =========================
+
     // UI
-    // =========================
+
     private HUD hud;
     private GameInputProcessor inputProcessor;
 
     private final DeliveryIndicator p1Indicator = new DeliveryIndicator();
     private final DeliveryIndicator p2Indicator = new DeliveryIndicator();
 
-    // =========================
+
     // Estado local (solo visual)
-    // =========================
+
     private final Jugador[] jugadores = new Jugador[2];
 
     // Estas flags VIENEN del servidor (Hint / GasHint)
@@ -124,14 +124,14 @@ public class GameScreen implements Screen, GameController {
 
         collisionLayer = tiledMap.getLayers().get("colisiones"); // solo por compatibilidad con Jugador
 
-        // Entidades visuales (no simulan lógica, solo se actualizan por red)
+        // Entidades visuales
         jugadores[0] = new Jugador(DEFAULT_SPRITE_PATH, 18, 36, new Vector2(1700, 500));
         jugadores[1] = new Jugador(DEFAULT_SPRITE_PATH2, 18, 36, new Vector2(1700, 450));
 
         p1Indicator.setColor(Color.CYAN);
         p2Indicator.setColor(Color.MAGENTA);
 
-        // Reset visual al entrar (por si volvés desde menú)
+        // Reset visual al entrar
         resetVisualState();
     }
 
@@ -148,7 +148,7 @@ public class GameScreen implements Screen, GameController {
 
     @Override
     public void render(float delta) {
-        // ===== Heartbeat =====
+        //  Heartbeat
 
 
         if (!cliente.isServerAlive(SERVER_TIMEOUT_MS)) {
@@ -156,16 +156,16 @@ public class GameScreen implements Screen, GameController {
             return;
         }
 
-        // ===== Render =====
+        //  Render
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         int localId = cliente.getPlayerId();
 
-        // ✅ Si todavía no tengo ID, no puedo seguir al jugador.
+        //  Si todavía no tengo ID, no puedo seguir al jugador.
         // (Esto evita crash por jugadores[-1])
         if (localId < 0 || localId > 1) {
-            // Podés dibujar un mensaje simple en HUD si querés.
+
             // Por ahora, solo renderizamos el mapa quieto.
             camera.position.set(VIRTUAL_WIDTH / 2f, VIRTUAL_HEIGHT / 2f, 0f);
             camera.update();
@@ -177,7 +177,7 @@ public class GameScreen implements Screen, GameController {
             return;
         }
 
-        // ===== Indicadores de delivery (solo el local) =====
+        //  Indicadores de delivery (solo el local)
         ActiveDelivery localDelivery = (localId == 0) ? p1Delivery : p2Delivery;
         if (localDelivery != null && localDelivery.target != null) {
             float cx = (localDelivery.target.x + localDelivery.target.width * 0.5f) * UNIT_SCALE;
@@ -189,7 +189,7 @@ public class GameScreen implements Screen, GameController {
             else p2Indicator.clearTarget();
         }
 
-        // ===== Cámara sigue al jugador local =====
+        //  Cámara sigue al jugador local
         Jugador localPlayer = jugadores[localId];
         camera.position.set(
             localPlayer.getPosicion().x * UNIT_SCALE,
@@ -198,24 +198,27 @@ public class GameScreen implements Screen, GameController {
         );
         camera.update();
 
-        // ===== Mapa =====
+        //  Mapa
         tiledMapRenderer.setView(camera);
         tiledMapRenderer.render();
 
-        // ===== Jugadores =====
+        //  Jugadores
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
         jugadores[0].dibujar(batch);
         jugadores[1].dibujar(batch);
+        jugadores[0].update(delta);
+        jugadores[1].update(delta);
+
         batch.end();
 
-        // ===== Indicador solo para local =====
+        //  Indicador solo para local
         float px = localPlayer.getPosicion().x * UNIT_SCALE;
         float py = localPlayer.getPosicion().y * UNIT_SCALE;
         if (localId == 0) p1Indicator.renderWorld(px, py, camera, delta);
         else p2Indicator.renderWorld(px, py, camera, delta);
 
-        // ===== HUD (solo local) =====
+        //  HUD (solo local)
         boolean localInGas      = inGasFromServer[localId];
         boolean localNearDealer = nearDealer[localId];
         boolean localNearDrop   = nearDrop[localId];
@@ -223,7 +226,7 @@ public class GameScreen implements Screen, GameController {
         String deliveryStatus = buildDeliveryStatus(localId);
         hud.renderSingle(localPlayer, localInGas, localNearDealer, localNearDrop, deliveryStatus, localId);
 
-        // ===== ESC =====
+        //  ESC
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             game.setScreen(new OptionsScreen(game, this, audio));
         }
@@ -237,13 +240,13 @@ public class GameScreen implements Screen, GameController {
             : "Pedido: Normal $" + d.reward;
     }
 
-    // =========================
+    //
     // GameController (cliente)
-    // =========================
+    //
 
     @Override
     public void enviarInput(int tecla) {
-        // Cliente NO decide lógica. Solo manda input al servidor.
+        // Cliente manda input al servidor.
         cliente.enviarInput(tecla);
     }
 
@@ -322,14 +325,14 @@ public class GameScreen implements Screen, GameController {
 
     @Override
     public void onReset() {
-        // Reset VISUAL (el server manda stats de nuevo igual)
+        // Reset
         p1Delivery = null;
         p2Delivery = null;
 
         nearDealer[0] = nearDealer[1] = false;
         nearDrop[0]   = nearDrop[1]   = false;
 
-        // Opcional (solo para que “se vea” reset inmediato)
+        //
         jugadores[0].setVida(100);
         jugadores[1].setVida(100);
         jugadores[0].setDinero(0);
@@ -358,13 +361,13 @@ public class GameScreen implements Screen, GameController {
     @Override public void onConnected(int playerId) {}
     @Override public void onStartMatch() {}
 
-    // =========================
+    //
     // LibGDX lifecycle
-    // =========================
+    //
 
     @Override
     public void resize(int width, int height) {
-        // ✅ Este era un bug en tu versión: no es split-screen, NO va width/2
+
         viewport.update(width, height, true);
         hud.resize(width, height);
     }
@@ -375,6 +378,7 @@ public class GameScreen implements Screen, GameController {
     @Override
     public void hide() {
         Gdx.input.setInputProcessor(null);
+        if (cliente != null) cliente.setGameController(null);
     }
 
     @Override
@@ -389,6 +393,11 @@ public class GameScreen implements Screen, GameController {
 
         p1Indicator.dispose();
         p2Indicator.dispose();
+        if (cliente != null){
+
+            cliente.desconectar();
+            cliente.terminarCliente();
+        }
 
         if (hud != null) hud.dispose();
     }

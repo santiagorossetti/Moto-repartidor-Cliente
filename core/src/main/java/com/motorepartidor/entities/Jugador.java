@@ -9,11 +9,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.motorepartidor.entities.components.PlayerRenderer;
 
-/**
- * CLIENTE: entidad visual.
- * NO calcula movimiento, colisiones ni gasolina. Todo eso lo decide el servidor.
- * Este objeto solo guarda estado (pos/ang/vida/gas/dinero) y renderiza.
- */
+
 public class Jugador {
 
     private Texture textura;
@@ -21,7 +17,7 @@ public class Jugador {
 
     private final Vector2 posicion;
     private float angulo;
-    private float velocidad; // opcional (si lo mostrás), pero NO se calcula acá
+    private float velocidad;
 
     private final Rectangle bounds;
     private final Polygon polygon;
@@ -45,7 +41,7 @@ public class Jugador {
 
         this.vida = VIDA_MAXIMA;
         this.gasolina = GASOLINA_MAXIMA;
-        this.dinero = 0;
+        this.dinero = 100;
 
         this.bounds = new Rectangle(posicion.x, posicion.y, frameWidth, frameHeight);
 
@@ -62,7 +58,7 @@ public class Jugador {
         this.renderer = new PlayerRenderer(this);
     }
 
-    /** CLIENTE: solo animación (si corresponde). No hay movimiento. */
+    /* solo animación (si corresponde). No hay movimiento. */
     public void update(float dt) {
         renderer.update(dt);
     }
@@ -75,7 +71,7 @@ public class Jugador {
         if (textura != null) textura.dispose();
     }
 
-    // ===================== Estado sincronizado desde el servidor =====================
+    //  Estado sincronizado desde el servidor
 
     public void setPosicion(Vector2 nuevaPos) {
         this.posicion.set(nuevaPos);
@@ -111,7 +107,7 @@ public class Jugador {
     public Texture getTextura() { return textura; }
     public TextureRegion[] getFrames() { return frames; }
 
-    // ===================== Helpers =====================
+    //  Helpers
 
     private Texture safeLoadTexture(String path) {
         try {

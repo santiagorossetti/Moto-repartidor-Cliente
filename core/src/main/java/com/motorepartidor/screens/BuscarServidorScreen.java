@@ -221,7 +221,7 @@ public class BuscarServidorScreen implements Screen, GameController {
                 break;
 
             case SERVIDOR_ENCONTRADO:
-                statusLabel.setText("Servidor encontrado ✅");
+                statusLabel.setText("Servidor encontrado ");
                 retryBtn.setVisible(false);
                 exitBtn.setVisible(false);
                 break;
@@ -240,14 +240,14 @@ public class BuscarServidorScreen implements Screen, GameController {
         }
     }
 
-    // ======================
+
     // Callbacks desde red
-    // ======================
+
 
     @Override
     public void onConnected(int playerId) {
         // Llega cuando el cliente recibe "ID:x"
-        // Si estás buscando servidor o timeout, pasás a SERVIDOR_ENCONTRADO
+
         if (estado == Estado.BUSCANDO_SERVIDOR || estado == Estado.TIMEOUT) {
             setEstado(Estado.SERVIDOR_ENCONTRADO);
         }
@@ -270,7 +270,7 @@ public class BuscarServidorScreen implements Screen, GameController {
 
     @Override
     public void onGameOver(int winnerIndex) {
-        // En esta screen no aplica (se usa en GameScreen). Lo dejo por compatibilidad.
+
     }
 
     @Override
@@ -278,9 +278,9 @@ public class BuscarServidorScreen implements Screen, GameController {
         // No aplica acá
     }
 
-    // ======================
-    // Métodos de GameController que acá no usamos
-    // ======================
+
+    // Métodos de GameController
+
 
     @Override
     public void enviarInput(int tecla) {
@@ -311,16 +311,16 @@ public class BuscarServidorScreen implements Screen, GameController {
     @Override
     public void onOpponentLeft() {
         // Si el rival se va mientras buscamos o esperamos,
-        // lo tratamos igual que conexión perdida
+
         onConnectionLost();
     }
 
 
 
 
-    // ======================
+
     // Lifecycle
-    // ======================
+
 
     @Override public void resize(int width, int height) { viewport.update(width, height, true); }
     @Override public void pause() {}
@@ -339,7 +339,7 @@ public class BuscarServidorScreen implements Screen, GameController {
         if (skin != null) skin.dispose();
     }
 
-    // ================== Skin Seguro ==================
+    //  Skin Seguro
     private Skin safeLoadSkin() {
         try {
             if (Gdx.files.internal("ui/uiskin.json").exists()) {

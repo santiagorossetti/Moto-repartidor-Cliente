@@ -60,19 +60,19 @@ public class OptionsScreen implements Screen {
             skin = safeLoadSkin();
         }
 
-        // ✅ IMPORTANTE: limpiar UI previa para no duplicar actores
+
         stage.clear();
 
         Gdx.input.setInputProcessor(stage);
 
-        // ===== Cargar prefs =====
+        //  Cargar prefs
         Preferences prefs = Gdx.app.getPreferences(PREFS_NAME);
         float savedVolume = prefs.getFloat(KEY_VOLUME, 0.8f);
         boolean savedFullscreen = prefs.getBoolean(KEY_FULLSCREEN, false);
         int savedW = prefs.getInteger(KEY_WIDTH, 1280);
         int savedH = prefs.getInteger(KEY_HEIGHT, 720);
 
-        // ===== Layout =====
+        // Layout
         Table root = new Table();
         root.setFillParent(true);
         root.defaults().pad(10);
@@ -83,7 +83,7 @@ public class OptionsScreen implements Screen {
         root.add(title).colspan(2);
         root.row();
 
-        // ===== Volumen =====
+        //  Volumen
         root.add(new Label("Volumen general:", skin));
 
         Table volRow = new Table(skin);
@@ -106,14 +106,14 @@ public class OptionsScreen implements Screen {
             }
         });
 
-        // ===== Fullscreen =====
+        //  Fullscreen
         root.add(new Label("Pantalla completa:", skin));
         fullscreenCheck = new CheckBox(" Activar", skin);
         fullscreenCheck.setChecked(savedFullscreen);
         root.add(fullscreenCheck);
         root.row();
 
-        // ===== Resolución ventana =====
+        //  Resolución ventana
         root.add(new Label("Resolución (ventana):", skin));
 
         resolutionBox = new SelectBox<>(skin);
@@ -134,7 +134,7 @@ public class OptionsScreen implements Screen {
         root.add(resolutionBox);
         root.row();
 
-        // ===== Botones =====
+        //  Botones
         TextButton applyBtn = new TextButton("Aplicar", skin);
         TextButton backBtn  = new TextButton("Volver",  skin);
         TextButton exitBtn  = new TextButton("Salir",   skin);
@@ -237,7 +237,7 @@ public class OptionsScreen implements Screen {
         if (skin != null) skin.dispose();
     }
 
-    // ================== Skin Seguro ==================
+    //Skin Seguro
     private Skin safeLoadSkin() {
         try {
             if (Gdx.files.internal("ui/uiskin.json").exists()) return new Skin(Gdx.files.internal("ui/uiskin.json"));

@@ -65,7 +65,7 @@ public class MensajeScreen implements Screen {
         TextButton backBtn = new TextButton(botonTexto, skin);
         backBtn.addListener(new ClickListener() {
             @Override public void clicked(InputEvent event, float x, float y) {
-                // Volver a menú (cliente nuevo lo creás desde el menú)
+                // Volver a menú
                 game.setScreen(new MainMenuScreen(game, audio, null));
             }
         });
@@ -102,7 +102,7 @@ public class MensajeScreen implements Screen {
         if (skin != null) skin.dispose();
     }
 
-    // ===== Skin seguro (igual que tu patrón) =====
+    //  Skin seguro (igual que tu patrón)
     private Skin safeLoadSkin() {
         try {
             if (Gdx.files.internal("ui/uiskin.json").exists()) return new Skin(Gdx.files.internal("ui/uiskin.json"));

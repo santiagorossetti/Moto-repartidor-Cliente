@@ -7,16 +7,7 @@ import com.motorepartidor.screens.GameScreen;
 import com.motorepartidor.screens.MainMenuScreen;
 import red.hiloCliente;
 
-/**
- * Clase principal del cliente.
- *
- * Responsabilidades:
- * - Mantener una única instancia de hiloCliente
- * - Mantener un AudioManager global
- * - Orquestar cambios de pantallas
- *
- * NO contiene lógica de juego ni de red.
- */
+
 public class Main extends Game {
 
     private MainMenuScreen mainMenuScreen;
@@ -34,26 +25,26 @@ public class Main extends Game {
     @Override
     public void create() {
 
-        // ===== Audio global =====
+        //  Audio global
         audio = new AudioManager();
 
-        // ===== Cliente de red (único durante toda la app) =====
+        //  Cliente de red (único durante toda la app)
         cliente = new hiloCliente();
         cliente.setDaemon(true); // no bloquea cierre de la JVM
         cliente.start();
 
-        // ===== Pantalla inicial =====
+         // Pantalla inicial
         mainMenuScreen = new MainMenuScreen(this, audio, cliente);
         setScreen(mainMenuScreen);
     }
 
-    // =========================================================
-    // Navegación
-    // =========================================================
 
-    /**
-     * Vuelve al menú principal.
-     */
+    // Navegación
+
+
+
+     // Vuelve al menú principal.
+
     public void showMainMenu() {
         if (mainMenuScreen == null) {
             mainMenuScreen = new MainMenuScreen(this, audio, cliente);
@@ -61,9 +52,9 @@ public class Main extends Game {
         setScreen(mainMenuScreen);
     }
 
-    /**
-     * Inicia una nueva partida.
-     */
+
+     //Inicia una nueva partida.
+
     public void startGame() {
 
         // No forzamos dispose acá: LibGDX se encarga del ciclo de vida
@@ -71,18 +62,15 @@ public class Main extends Game {
         setScreen(gameScreen);
     }
 
-    /**
-     * Llamado cuando una partida termina (GameOver).
-     * El menú leerá el ganador vía getLastWinner().
-     */
+
     public void onMatchFinished(int winnerIndex) {
         this.lastWinner = winnerIndex;
         showMainMenu();
     }
 
-    // =========================================================
+
     // Accesores
-    // =========================================================
+
 
     public AudioManager getAudio() {
         return audio;
@@ -101,18 +89,19 @@ public class Main extends Game {
     // =========================================================
     @Override
     public void dispose() {
-        // 1) cortar red primero
-        if (cliente != null) cliente.desconectar();
+        if (cliente != null) {
+            cliente.desconectar();
+            try { cliente.join(1500); } catch (InterruptedException ignored) {}
+            cliente = null;
+        }
 
-        // 2) liberar audio global
         if (audio != null) {
             try { audio.dispose(); } catch (Exception e) { Gdx.app.error("Main", "Error liberando AudioManager", e); }
             audio = null;
         }
 
-        // 3) NO hagas mainMenuScreen.dispose() NI gameScreen.dispose() acá
-        // porque super.dispose() va a disponer el screen actual.
         super.dispose();
     }
+
 
 }

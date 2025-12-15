@@ -189,7 +189,7 @@ public class MainMenuScreen implements Screen {
         if (skin != null) skin.dispose();
     }
 
-    // ================== Skin Seguro ==================
+    // Skin Seguro
     private Skin safeLoadSkin() {
         try {
             if (Gdx.files.internal("ui/uiskin.json").exists()) {
