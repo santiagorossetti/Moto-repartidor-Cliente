@@ -29,6 +29,8 @@ public class Main extends Game {
     // Resultado de la última partida (0 = ninguno / empate)
     private int lastWinner = 0;
 
+
+
     @Override
     public void create() {
 
@@ -49,7 +51,9 @@ public class Main extends Game {
     // Navegación
     // =========================================================
 
-    /** Vuelve al menú principal. */
+    /**
+     * Vuelve al menú principal.
+     */
     public void showMainMenu() {
         if (mainMenuScreen == null) {
             mainMenuScreen = new MainMenuScreen(this, audio, cliente);
@@ -57,7 +61,9 @@ public class Main extends Game {
         setScreen(mainMenuScreen);
     }
 
-    /** Inicia una nueva partida. */
+    /**
+     * Inicia una nueva partida.
+     */
     public void startGame() {
 
         // No forzamos dispose acá: LibGDX se encarga del ciclo de vida
@@ -95,25 +101,18 @@ public class Main extends Game {
     // =========================================================
     @Override
     public void dispose() {
+        // 1) cortar red primero
+        if (cliente != null) cliente.desconectar();
 
-        // Red
-        try {
-            if (cliente != null) cliente.desconectar();
-        } catch (Throwable ignored) {}
-
-        // Pantallas
-        if (mainMenuScreen != null) mainMenuScreen.dispose();
-        if (gameScreen != null) gameScreen.dispose();
-
-        // Audio
+        // 2) liberar audio global
         if (audio != null) {
-            try {
-                audio.dispose();
-            } catch (Exception e) {
-                Gdx.app.error("Main", "Error liberando AudioManager", e);
-            }
+            try { audio.dispose(); } catch (Exception e) { Gdx.app.error("Main", "Error liberando AudioManager", e); }
+            audio = null;
         }
 
+        // 3) NO hagas mainMenuScreen.dispose() NI gameScreen.dispose() acá
+        // porque super.dispose() va a disponer el screen actual.
         super.dispose();
     }
+
 }
