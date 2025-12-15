@@ -6,83 +6,112 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 
+/**
+ * Indicador visual de delivery:
+ * - Flecha desde el jugador apuntando al objetivo
+ * - Beacon pulsante en el destino (si está en pantalla)
+ *
+ *
+ */
 public class DeliveryIndicator {
 
-    private final ShapeRenderer sr = new ShapeRenderer();
+    private final ShapeRenderer renderer = new ShapeRenderer();
+
+    // Destino en coordenadas de mundo
     private final Vector2 targetWorld = new Vector2();
     private boolean hasTarget = false;
+
     private Color color = Color.CYAN;
-    private float pulseT = 0f;
+    private float pulseTime = 0f;
 
-    // Tamaños en UNIDADES DE MUNDO (si usás UNIT_SCALE=1/64f, esto queda bien)
-    private static final float ARROW_LEN  = 0.6f;  // largo de flecha (~38 px)
-    private static final float ARROW_BASE = 0.35f; // ancho base (~22 px)
-    private static final float BEACON_R   = 0.35f; // radio beacon (~22 px)
+    // Tamaños en unidades de mundo (compatibles con UNIT_SCALE)
+    private static final float ARROW_LENGTH = 0.6f;
+    private static final float ARROW_WIDTH  = 0.35f;
+    private static final float BEACON_RADIUS = 0.35f;
+    private static final float BASE_OFFSET = 1.0f;
 
-    public void setColor(Color c) { this.color = c; }
-    public void clearTarget() { hasTarget = false; }
-    public void setTarget(float targetX, float targetY) {
-        targetWorld.set(targetX, targetY);
+    // =========================================================
+    // Configuración
+    // =========================================================
+    public void setColor(Color color) {
+        if (color != null) this.color = color;
+    }
+
+    public void setTarget(float x, float y) {
+        targetWorld.set(x, y);
         hasTarget = true;
     }
 
-    /**
-     * Dibuja en COORDENADAS DE MUNDO usando la cámara dada:
-     * - Flecha pegada al jugador apuntando al destino
-     * - Beacon en el destino si está en frustum
-     * IMPORTANTE: llamarlo cuando NO haya otro ShapeRenderer.begin() abierto.
-     */
-    public void renderWorld(float playerX, float playerY, OrthographicCamera camera, float delta) {
+    public void clearTarget() {
+        hasTarget = false;
+    }
+
+    // =========================================================
+    // Render en mundo
+    // =========================================================
+    public void renderWorld(float playerX,
+                            float playerY,
+                            OrthographicCamera camera,
+                            float delta) {
+
         if (!hasTarget || camera == null) return;
 
-        pulseT += delta;
+        pulseTime += delta;
 
-        // Dirección jugador -> destino (mundo)
+        // Dirección jugador -> destino
         float dx = targetWorld.x - playerX;
         float dy = targetWorld.y - playerY;
-        float ang = MathUtils.atan2(dy, dx);
-        float cos = MathUtils.cos(ang), sin = MathUtils.sin(ang);
+        float angle = MathUtils.atan2(dy, dx);
 
-        // Proyección de mundo
-        sr.setProjectionMatrix(camera.combined);
+        float cos = MathUtils.cos(angle);
+        float sin = MathUtils.sin(angle);
 
-        // Distancia desde la moto hasta el INICIO de la flecha
-        final float BASE_OFFSET = 1.0f;
-
-// Punto de inicio de la flecha, algo adelante de la moto
+        // Base de la flecha (adelante del jugador)
         float baseX = playerX + cos * BASE_OFFSET;
         float baseY = playerY + sin * BASE_OFFSET;
 
-// Punta de la flecha, un poco más adelante
-        float tipX = baseX + cos * ARROW_LEN;
-        float tipY = baseY + sin * ARROW_LEN;
+        // Punta de la flecha
+        float tipX = baseX + cos * ARROW_LENGTH;
+        float tipY = baseY + sin * ARROW_LENGTH;
 
-        float perpX = -sin, perpY = cos;
-        float leftX  = baseX + perpX * (ARROW_BASE * 0.5f);
-        float leftY  = baseY + perpY * (ARROW_BASE * 0.5f);
-        float rightX = baseX - perpX * (ARROW_BASE * 0.5f);
-        float rightY = baseY - perpY * (ARROW_BASE * 0.5f);
+        // Base izquierda / derecha
+        float perpX = -sin;
+        float perpY = cos;
 
-        sr.begin(ShapeRenderer.ShapeType.Filled);
-        sr.setColor(color);
-        sr.triangle(tipX, tipY, leftX, leftY, rightX, rightY);
-        sr.end();
+        float halfWidth = ARROW_WIDTH * 0.5f;
+        float leftX  = baseX + perpX * halfWidth;
+        float leftY  = baseY + perpY * halfWidth;
+        float rightX = baseX - perpX * halfWidth;
+        float rightY = baseY - perpY * halfWidth;
 
-        // Si el destino está visible por la cámara, dibujar beacon
+        renderer.setProjectionMatrix(camera.combined);
+
+        // ===== Flecha =====
+        renderer.begin(ShapeRenderer.ShapeType.Filled);
+        renderer.setColor(color);
+        renderer.triangle(tipX, tipY, leftX, leftY, rightX, rightY);
+        renderer.end();
+
+        // ===== Beacon si el destino está visible =====
         if (camera.frustum.pointInFrustum(targetWorld.x, targetWorld.y, 0)) {
-            float r = BEACON_R + MathUtils.sin(pulseT * 4f) * 0.1f;
 
-            sr.begin(ShapeRenderer.ShapeType.Line);
-            sr.setColor(color);
-            sr.circle(targetWorld.x, targetWorld.y, r, 24);
-            sr.end();
+            float pulse = BEACON_RADIUS + MathUtils.sin(pulseTime * 4f) * 0.1f;
 
-            sr.begin(ShapeRenderer.ShapeType.Filled);
-            sr.setColor(color);
-            sr.circle(targetWorld.x, targetWorld.y, 0.06f, 16);
-            sr.end();
+            renderer.begin(ShapeRenderer.ShapeType.Line);
+            renderer.setColor(color);
+            renderer.circle(targetWorld.x, targetWorld.y, pulse, 24);
+            renderer.end();
+
+            renderer.begin(ShapeRenderer.ShapeType.Filled);
+            renderer.circle(targetWorld.x, targetWorld.y, 0.06f, 16);
+            renderer.end();
         }
     }
 
-    public void dispose() { sr.dispose(); }
+    // =========================================================
+    // Cleanup
+    // =========================================================
+    public void dispose() {
+        renderer.dispose();
+    }
 }

@@ -2,37 +2,25 @@ package com.motorepartidor.screens;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Graphics.DisplayMode;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.Graphics.DisplayMode;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-// import com.badlogic.gdx.scenes.scene2d.ui.List; // Removed libGDX List to prevent conflict
-import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
-import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Slider;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import com.motorepartidor.Main;
 import com.motorepartidor.audio.AudioManager;
 
 import java.util.ArrayList;
-import java.util.List; // Explicitly using java.util.List
 
 public class OptionsScreen implements Screen {
 
@@ -43,46 +31,48 @@ public class OptionsScreen implements Screen {
     private static final String KEY_HEIGHT = "height";
 
     private final Game game;
-    public AudioManager audio;
-    private final Screen previousScreen; // <-- NUEVO
-    private final OrthographicCamera camera;
+    private final Screen previousScreen;
+    private final AudioManager audio;
+
     private final Viewport viewport;
+
     private Stage stage;
     private Skin skin;
+
     private Slider volumeSlider;
     private Label volumeValue;
     private CheckBox fullscreenCheck;
     private SelectBox<String> resolutionBox;
-    // Changed to java.util.List to avoid conflict with scene2d.ui.List
+
     private java.util.List<int[]> windowedResolutions;
 
-
-
-
-    // Constructor para volver a la pantalla anterior real (GameScreen, Menú, etc.)
     public OptionsScreen(Game game, Screen previousScreen, AudioManager audio) {
         this.game = game;
-        this.audio = audio;
         this.previousScreen = previousScreen;
-        this.camera = new OrthographicCamera();
-        this.viewport = new FitViewport(1280, 720, camera);
+        this.audio = audio;
+        this.viewport = new FitViewport(1280, 720);
     }
 
     @Override
     public void show() {
-        // Initialize stage and skin only once
         if (stage == null) {
             stage = new Stage(viewport);
             skin = safeLoadSkin();
         }
+
+        // ✅ IMPORTANTE: limpiar UI previa para no duplicar actores
+        stage.clear();
+
         Gdx.input.setInputProcessor(stage);
 
+        // ===== Cargar prefs =====
         Preferences prefs = Gdx.app.getPreferences(PREFS_NAME);
         float savedVolume = prefs.getFloat(KEY_VOLUME, 0.8f);
         boolean savedFullscreen = prefs.getBoolean(KEY_FULLSCREEN, false);
         int savedW = prefs.getInteger(KEY_WIDTH, 1280);
         int savedH = prefs.getInteger(KEY_HEIGHT, 720);
 
+        // ===== Layout =====
         Table root = new Table();
         root.setFillParent(true);
         root.defaults().pad(10);
@@ -93,66 +83,74 @@ public class OptionsScreen implements Screen {
         root.add(title).colspan(2);
         root.row();
 
-        // Volumen
+        // ===== Volumen =====
         root.add(new Label("Volumen general:", skin));
+
         Table volRow = new Table(skin);
         volumeSlider = new Slider(0f, 1f, 0.01f, false, skin);
         volumeSlider.setValue(clamp(savedVolume));
-        volumeValue = new Label(String.format("%d%%", Math.round(volumeSlider.getValue()*100)), skin);
+
+        volumeValue = new Label(percentText(volumeSlider.getValue()), skin);
+
         volRow.add(volumeSlider).width(420);
         volRow.add(volumeValue).padLeft(10);
+
         root.add(volRow);
         root.row();
 
         volumeSlider.addListener(new ChangeListener() {
             @Override public void changed(ChangeEvent event, Actor actor) {
-                volumeValue.setText(String.format("%d%%", Math.round(volumeSlider.getValue()*100)));
-                // Removed try-catch, added check for game.getAudio()
-                if (OptionsScreen.this.audio != null) {
-                    OptionsScreen.this.audio.setMasterVolume(volumeSlider.getValue());
-                }
+                float v = clamp(volumeSlider.getValue());
+                volumeValue.setText(percentText(v));
+                if (audio != null) audio.setMasterVolume(v);
             }
         });
 
-        // Fullscreen
+        // ===== Fullscreen =====
         root.add(new Label("Pantalla completa:", skin));
         fullscreenCheck = new CheckBox(" Activar", skin);
         fullscreenCheck.setChecked(savedFullscreen);
         root.add(fullscreenCheck);
         root.row();
 
-        // Resolución ventana
+        // ===== Resolución ventana =====
         root.add(new Label("Resolución (ventana):", skin));
+
         resolutionBox = new SelectBox<>(skin);
         windowedResolutions = defaultWindowedResolutions();
+
         String[] items = new String[windowedResolutions.size()];
-        int pre = 0;
+        int preselect = 0;
+
         for (int i = 0; i < windowedResolutions.size(); i++) {
             int[] r = windowedResolutions.get(i);
             items[i] = r[0] + " x " + r[1];
-            if (r[0] == savedW && r[1] == savedH) pre = i;
+            if (r[0] == savedW && r[1] == savedH) preselect = i;
         }
+
         resolutionBox.setItems(items);
-        resolutionBox.setSelectedIndex(pre);
+        resolutionBox.setSelectedIndex(preselect);
+
         root.add(resolutionBox);
         root.row();
 
+        // ===== Botones =====
         TextButton applyBtn = new TextButton("Aplicar", skin);
         TextButton backBtn  = new TextButton("Volver",  skin);
-        TextButton exitBtn  = new TextButton("Salir",  skin);
-
+        TextButton exitBtn  = new TextButton("Salir",   skin);
 
         applyBtn.addListener(new ChangeListener() {
             @Override public void changed(ChangeEvent event, Actor actor) {
                 applyChanges();
             }
         });
+
         backBtn.addListener(new ChangeListener() {
             @Override public void changed(ChangeEvent event, Actor actor) {
-                // Volver a la pantalla anterior REAL
                 game.setScreen(previousScreen);
             }
         });
+
         exitBtn.addListener(new ChangeListener() {
             @Override public void changed(ChangeEvent event, Actor actor) {
                 Gdx.app.exit();
@@ -167,9 +165,12 @@ public class OptionsScreen implements Screen {
     private void applyChanges() {
         float vol = clamp(volumeSlider.getValue());
         boolean fs = fullscreenCheck.isChecked();
-        int[] wh = windowedResolutions.get(Math.max(0, resolutionBox.getSelectedIndex()));
+
+        int idx = Math.max(0, resolutionBox.getSelectedIndex());
+        int[] wh = windowedResolutions.get(idx);
         int w = wh[0], h = wh[1];
 
+        // Guardar prefs
         Preferences prefs = Gdx.app.getPreferences(PREFS_NAME);
         prefs.putFloat(KEY_VOLUME, vol);
         prefs.putBoolean(KEY_FULLSCREEN, fs);
@@ -177,11 +178,10 @@ public class OptionsScreen implements Screen {
         prefs.putInteger(KEY_HEIGHT, h);
         prefs.flush();
 
-        // Check added for game.getAudio()
-        if (this.audio != null) {
-            this.audio.setMasterVolume(vol);
-        }
+        // Aplicar volumen al audio global
+        if (audio != null) audio.setMasterVolume(vol);
 
+        // Aplicar modo ventana/pantalla completa
         try {
             if (fs) {
                 DisplayMode dm = Gdx.graphics.getDisplayMode();
@@ -204,28 +204,35 @@ public class OptionsScreen implements Screen {
         return list;
     }
 
-    private float clamp(float v) { return Math.max(0f, Math.min(1f, v)); }
+    private static float clamp(float v) { return Math.max(0f, Math.min(1f, v)); }
 
-    @Override public void render(float delta) {
+    private static String percentText(float v) {
+        return String.format("%d%%", Math.round(clamp(v) * 100));
+    }
+
+    @Override
+    public void render(float delta) {
         Gdx.gl.glClearColor(0.08f, 0.08f, 0.1f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        if (stage != null) { // Safety check
-            stage.act(delta);
-            stage.draw();
-        }
+
+        stage.act(delta);
+        stage.draw();
     }
 
     @Override public void resize(int width, int height) { viewport.update(width, height, true); }
     @Override public void pause() {}
     @Override public void resume() {}
 
-    @Override public void hide() {
-        // Only remove input processor in hide
-        Gdx.input.setInputProcessor(null);
+    @Override
+    public void hide() {
+        // Solo soltamos input. No dispose acá porque reutilizamos la screen.
+        if (Gdx.input.getInputProcessor() == stage) {
+            Gdx.input.setInputProcessor(null);
+        }
     }
 
-    // Dispose resources here for proper cleanup
-    @Override public void dispose() {
+    @Override
+    public void dispose() {
         if (stage != null) stage.dispose();
         if (skin != null) skin.dispose();
     }
@@ -233,12 +240,8 @@ public class OptionsScreen implements Screen {
     // ================== Skin Seguro ==================
     private Skin safeLoadSkin() {
         try {
-            if (Gdx.files.internal("ui/uiskin.json").exists()) {
-                return new Skin(Gdx.files.internal("ui/uiskin.json"));
-            }
-            if (Gdx.files.internal("uiskin.json").exists()) {
-                return new Skin(Gdx.files.internal("uiskin.json"));
-            }
+            if (Gdx.files.internal("ui/uiskin.json").exists()) return new Skin(Gdx.files.internal("ui/uiskin.json"));
+            if (Gdx.files.internal("uiskin.json").exists())    return new Skin(Gdx.files.internal("uiskin.json"));
         } catch (Exception e) {
             Gdx.app.error("Options", "Error leyendo uiskin.json, uso fallback", e);
         }
@@ -250,12 +253,10 @@ public class OptionsScreen implements Screen {
         BitmapFont font = new BitmapFont();
         s.add("default", font);
 
-        Drawable bg = newDrawable(32, 32, 42, 255);
-        Drawable panel = newDrawable(60, 60, 75, 255);
+        Drawable panel  = newDrawable(60, 60, 75, 255);
         Drawable accent = newDrawable(80, 160, 255, 255);
 
-        Label.LabelStyle ls = new Label.LabelStyle();
-        ls.font = font; ls.fontColor = Color.WHITE;
+        Label.LabelStyle ls = new Label.LabelStyle(font, Color.WHITE);
         s.add("default", ls);
 
         TextButton.TextButtonStyle tbs = new TextButton.TextButtonStyle();
@@ -269,9 +270,7 @@ public class OptionsScreen implements Screen {
         Slider.SliderStyle ss = new Slider.SliderStyle();
         ss.background = panel; ss.knob = accent;
         s.add("default-horizontal", ss);
-        s.add("default-vertical", ss);
 
-        // Explicitly using libGDX UI List for the style
         com.badlogic.gdx.scenes.scene2d.ui.List.ListStyle listStyle =
             new com.badlogic.gdx.scenes.scene2d.ui.List.ListStyle(font, Color.WHITE, Color.LIGHT_GRAY, panel);
 
@@ -284,7 +283,7 @@ public class OptionsScreen implements Screen {
 
     private Drawable newDrawable(int r, int g, int b, int a) {
         Pixmap pm = new Pixmap(8, 8, Pixmap.Format.RGBA8888);
-        pm.setColor(r/255f, g/255f, b/255f, a/255f);
+        pm.setColor(r / 255f, g / 255f, b / 255f, a / 255f);
         pm.fill();
         TextureRegionDrawable dr = new TextureRegionDrawable(new Texture(pm));
         pm.dispose();

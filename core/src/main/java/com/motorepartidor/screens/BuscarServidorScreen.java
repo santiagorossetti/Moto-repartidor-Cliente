@@ -27,6 +27,8 @@ import com.motorepartidor.GameController;
 import com.motorepartidor.audio.AudioManager;
 import red.hiloCliente;
 
+import static com.motorepartidor.screens.GameScreen.SERVER_TIMEOUT_MS;
+
 public class BuscarServidorScreen implements Screen, GameController {
 
     private enum Estado {
@@ -133,6 +135,19 @@ public class BuscarServidorScreen implements Screen, GameController {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         stateTime += delta;
+        pingAccum += delta;
+
+        if (pingAccum >= INTERVALO_PING) {
+            pingAccum = 0f;
+
+            // si todavía no tenemos ID, intentamos conexión (broadcast)
+            if (cliente.getPlayerId() < 0) {
+                cliente.establecerConexion();
+            } else {
+                // si ya hay ID, mandamos ping para mantener vivo
+                cliente.enviarPing();
+            }
+        }
 
         switch (estado) {
 
@@ -144,6 +159,12 @@ public class BuscarServidorScreen implements Screen, GameController {
                 if (pingAccum >= INTERVALO_PING) {
                     pingAccum = 0f;
                     cliente.establecerConexion();
+                    cliente.enviarPing();
+                }
+
+                if (!cliente.isServerAlive(SERVER_TIMEOUT_MS) && estado != Estado.BUSCANDO_SERVIDOR) {
+                    onConnectionLost();
+                    return;
                 }
 
                 if (searchTime >= TIMEOUT_SERVIDOR) {
@@ -233,6 +254,13 @@ public class BuscarServidorScreen implements Screen, GameController {
     }
 
     @Override
+    public void onConnectionLost() {
+        try { if (cliente != null) cliente.desconectar(); } catch (Throwable ignored) {}
+        game.setScreen(new MensajeScreen(game, audio, "Conexión perdida", "Volver al menú"));
+    }
+
+
+    @Override
     public void onStartMatch() {
         // Llega cuando el cliente recibe "Comienza"
         if (estado == Estado.BUSCANDO_RIVAL || estado == Estado.SERVIDOR_ENCONTRADO || estado == Estado.BUSCANDO_SERVIDOR) {
@@ -276,6 +304,19 @@ public class BuscarServidorScreen implements Screen, GameController {
 
     @Override
     public void actualizarHint(int id, int tipo) {}
+
+    @Override
+    public void actualizarGasHint(int idJugador, boolean enGas) {}
+
+    @Override
+    public void onOpponentLeft() {
+        // Si el rival se va mientras buscamos o esperamos,
+        // lo tratamos igual que conexión perdida
+        onConnectionLost();
+    }
+
+
+
 
     // ======================
     // Lifecycle

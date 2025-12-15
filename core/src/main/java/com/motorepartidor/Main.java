@@ -7,81 +7,105 @@ import com.motorepartidor.screens.GameScreen;
 import com.motorepartidor.screens.MainMenuScreen;
 import red.hiloCliente;
 
-
-/*
-  Clase principal del juego que gestiona las diferentes pantallas (menús, juego, etc.).
-  Ahora mantiene un único AudioManager compartido.
-*/
+/**
+ * Clase principal del cliente.
+ *
+ * Responsabilidades:
+ * - Mantener una única instancia de hiloCliente
+ * - Mantener un AudioManager global
+ * - Orquestar cambios de pantallas
+ *
+ * NO contiene lógica de juego ni de red.
+ */
 public class Main extends Game {
 
     private MainMenuScreen mainMenuScreen;
     private GameScreen gameScreen;
 
-    private AudioManager audio; // AudioManager global
+    // Recursos globales
+    private AudioManager audio;
+    private hiloCliente cliente;
+
+    // Resultado de la última partida (0 = ninguno / empate)
     private int lastWinner = 0;
-    hiloCliente cliente = new hiloCliente();
-
-
-
 
     @Override
     public void create() {
-        // Inicializar el AudioManager una sola vez
+
+        // ===== Audio global =====
         audio = new AudioManager();
 
+        // ===== Cliente de red (único durante toda la app) =====
+        cliente = new hiloCliente();
+        cliente.setDaemon(true); // no bloquea cierre de la JVM
         cliente.start();
 
-
-        // Pantalla inicial
-        mainMenuScreen = new MainMenuScreen(this, this.audio , cliente);
+        // ===== Pantalla inicial =====
+        mainMenuScreen = new MainMenuScreen(this, audio, cliente);
         setScreen(mainMenuScreen);
     }
 
-    /** Acceso global al AudioManager. */
-    public AudioManager getAudio() {
-        return audio;
-    }
+    // =========================================================
+    // Navegación
+    // =========================================================
 
     /** Vuelve al menú principal. */
     public void showMainMenu() {
         if (mainMenuScreen == null) {
-            mainMenuScreen = new MainMenuScreen(this, audio , cliente);
+            mainMenuScreen = new MainMenuScreen(this, audio, cliente);
         }
         setScreen(mainMenuScreen);
     }
 
     /** Inicia una nueva partida. */
     public void startGame() {
-        if (gameScreen != null) {
-            gameScreen.dispose();
-        }
-        gameScreen = new GameScreen(this, audio , cliente);
+
+        // No forzamos dispose acá: LibGDX se encarga del ciclo de vida
+        gameScreen = new GameScreen(this, audio, cliente);
         setScreen(gameScreen);
     }
 
+    /**
+     * Llamado cuando una partida termina (GameOver).
+     * El menú leerá el ganador vía getLastWinner().
+     */
     public void onMatchFinished(int winnerIndex) {
-        this.lastWinner = winnerIndex; // 0, 1 o 2
+        this.lastWinner = winnerIndex;
+        showMainMenu();
+    }
 
-        // Volver al menú principal reutilizando la instancia si existe
-        if (mainMenuScreen == null) {
-            mainMenuScreen = new MainMenuScreen(this, audio , cliente);
-        }
+    // =========================================================
+    // Accesores
+    // =========================================================
 
-        setScreen(mainMenuScreen);
+    public AudioManager getAudio() {
+        return audio;
     }
 
     public int getLastWinner() {
         return lastWinner;
     }
 
+    public hiloCliente getCliente() {
+        return cliente;
+    }
+
+    // =========================================================
+    // Cleanup final
+    // =========================================================
     @Override
     public void dispose() {
-        cliente.terminarCliente();
-        super.dispose();
+
+        // Red
+        try {
+            if (cliente != null) cliente.desconectar();
+        } catch (Throwable ignored) {}
+
+        // Pantallas
         if (mainMenuScreen != null) mainMenuScreen.dispose();
         if (gameScreen != null) gameScreen.dispose();
 
-        // Liberar el audio global al cerrar el juego
+        // Audio
         if (audio != null) {
             try {
                 audio.dispose();
@@ -89,5 +113,7 @@ public class Main extends Game {
                 Gdx.app.error("Main", "Error liberando AudioManager", e);
             }
         }
+
+        super.dispose();
     }
 }

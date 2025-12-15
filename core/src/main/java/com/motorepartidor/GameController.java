@@ -21,5 +21,10 @@ public interface GameController {
     void onConnected(int playerId);
     void onStartMatch();
 
+    void onConnectionLost();
+    void onOpponentLeft();
+
+    void actualizarGasHint(int idJugador, boolean enGas);
+
 
 }

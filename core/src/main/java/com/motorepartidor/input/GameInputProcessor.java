@@ -25,7 +25,7 @@ public class GameInputProcessor implements InputProcessor {
     @Override
     public boolean keyDown(int keycode) {
         if (isAllowed(keycode)) {
-            gameController.enviarInput(keycode);      // pressed
+           gameController.enviarInput(keycode);      // pressed
             return true;
         }
         return false;
